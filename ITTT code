@@ -1,0 +1,95 @@
+#include "SD.h" // audio
+#define SD_ChipSelectPin 10 // zet output van de sdcard op pin 10
+#include "TMRpcm.h" // lezen van sd card
+#include "SPI.h" // audio
+#include <NewPing.h> // sonar
+
+NewPing sonar(6,5); // dit zet de input van de sonar op de 6e en 5e input van de arduino
+TMRpcm tmrpcm; 
+void setup(){
+  pinMode(A0, INPUT); // analoge input voor oog 1
+  pinMode(A1, INPUT); // analoge input voor oog 2
+  pinMode(A2, INPUT); // analoge input voor oor 1
+  pinMode(A3, INPUT); // analoge input voor oor 2
+  tmrpcm.speakerPin = 9; // zet de speakerpin op 9 dit is de output voor geluid
+  Serial.begin(9600);
+
+// wanneer de sd niet gezien word print fail comment
+  if (!SD.begin(SD_ChipSelectPin)) {
+    Serial.println("SD fail");
+    return;
+  }
+}
+
+void loop(){  
+ 
+  int valueEye1 = analogRead(A0); // int value van analoge input A0 voor oog 1
+  int valueEye2 = analogRead(A1); // int value van analoge input A1 voor oog 2
+  int valueEar1 = analogRead(A2); // int value van analoge input A2 voor oor 1
+  int valueEar2 = analogRead(A3); // int value van analoge input A3 voor oor 2
+  int waardeL1 = map (valueEye1,0,1023,0,1000); // value map van oog 1
+  int waardeL2 = map (valueEye2,0,1023,0,1000); // value map van oog 2
+  int waardeE1 = map (valueEar1,0,1023,0,1000); // value map van oor 1
+  int waardeE2 = map (valueEar2,0,1023,0,1000); // value map van oor 2
+  
+  int distance = sonar.ping_cm(); // int value van de sonar in centimeters
+  // value tests
+    //Serial.print("Afstand=");
+    //Serial.println(distance);
+    //Serial.println(waardeL1);
+    //Serial.println(waardeL2);
+    //Serial.println(waardeE1);
+    //Serial.println(waardeE2);
+
+
+// wanneer de waarde van de lichtsensoren op de ogen hoger worden dan 800 start een van de wav audio bestanden
+  if(waardeL2 > 800 && waardeL1 > 800){
+    int d = int (random(1,7)); // random int voor het kiezen van welk audio bestand afgespeeld word
+    tmrpcm.setVolume(5); // zet het volume van het audio bestand 5 is het meest verstaand baar maar 6 is het hardst maar het heeft dan ruis
+    if(d == 1){
+    tmrpcm.play("17.wav");
+    }else if( d == 2){
+    tmrpcm.play("18.wav");
+    }else if( d == 3){
+    tmrpcm.play("21.wav");
+    }else if( d == 4){
+    tmrpcm.play("22.wav");
+    }else if( d == 5){
+    tmrpcm.play("23.wav");
+    }else if( d == 6){
+    tmrpcm.play("26.wav");
+  }
+}
+
+// wanneer de waarde van de lichtsensoren op de oren hoger worden dan 800 start een van de wav audio bestanden
+  else if(waardeE1 > 800 && waardeE2 > 800){
+    int d = int (random(1,5)); // random int voor het kiezen van welk audio bestand afgespeeld word
+    tmrpcm.setVolume(5); // zet het volume van het audio bestand 5 is het meest verstaand baar maar 6 is het hardst maar het heeft dan ruis
+    if (d==1){
+    tmrpcm.play("19.wav");
+    }else if (d==2){
+    tmrpcm.play("20.wav");
+    }else if (d==3){
+    tmrpcm.play("21.wav");
+    }else if (d==4){
+    tmrpcm.play("23.wav");
+    }
+  }
+  
+// wanneer de waarde van de sonar op de voorkant van de hoed lager word dan 60 start een van de wav audio bestanden
+  else if(distance < 60 && distance != 0 ){
+    tmrpcm.setVolume(5); // zet het volume van het audio bestand 5 is het meest verstaand baar maar 6 is het hardst maar het heeft dan ruis
+    int d = int (random(1,5)); // random int voor het kiezen van welk audio bestand afgespeeld word
+    if (d==1){
+    tmrpcm.play("25.wav");
+    }else if (d==2){
+    tmrpcm.play("27.wav");
+    }else if (d==3){
+    tmrpcm.play("28.wav");
+    }else if (d==4){
+    tmrpcm.play("29.wav");
+    
+    }
+    
+  }
+}
